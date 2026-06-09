@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { s3Client } from "@/lib/s3";
+import { s3Client } from "../../../lib/s3";
 import { 
   ListObjectsV2Command, 
   PutObjectCommand, 

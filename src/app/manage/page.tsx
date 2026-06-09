@@ -1,28 +1,37 @@
 "use client";
-import { useState, useEffect } from "react";
-import { UploadCloud, Trash2, ArrowUpDown, RefreshCcw } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { UploadCloud, Trash2, RefreshCcw } from "lucide-react";
+
+interface S3File {
+  key: string;
+  size: number;
+  lastModified: string;
+  url: string;
+}
 
 export default function ManageItems() {
-  const [files, setFiles] = useState<any[]>([]);
+  const [files, setFiles] = useState<S3File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchFiles();
-  }, []);
-
-  const fetchFiles = async () => {
+  const fetchFiles = useCallback(async () => {
     setRefreshing(true);
     try {
       const res = await fetch("/api/storage");
       const result = await res.json();
-      if (result.success) setFiles(result.data);
-    } catch (err) {
+      if (result.success) {
+        setFiles(result.data);
+      }
+    } catch {
       alert("Error handling S3 objects synchronization.");
     } finally {
       setRefreshing(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchFiles();
+  }, [fetchFiles]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return;
@@ -34,9 +43,12 @@ export default function ManageItems() {
     try {
       const res = await fetch("/api/storage", { method: "POST", body: formData });
       const result = await res.json();
-      if (result.success) fetchFiles();
-      else alert(result.error);
-    } catch (err) {
+      if (result.success) {
+        fetchFiles();
+      } else {
+        alert(result.error);
+      }
+    } catch {
       alert("Internal pipeline mapping error during upload.");
     } finally {
       setUploading(false);
@@ -48,9 +60,12 @@ export default function ManageItems() {
     try {
       const res = await fetch(`/api/storage?key=${encodeURIComponent(key)}`, { method: "DELETE" });
       const result = await res.json();
-      if (result.success) setFiles(files.filter(f => f.key !== key));
-      else alert(result.error);
-    } catch (err) {
+      if (result.success) {
+        setFiles((prevFiles) => prevFiles.filter((f) => f.key !== key));
+      } else {
+        alert(result.error);
+      }
+    } catch {
       alert("Error deleting S3 cluster array target.");
     }
   };
@@ -70,10 +85,10 @@ export default function ManageItems() {
       </div>
 
       {/* Modern Upload Zone */}
-      <div className="bg-slate-900/20 border border-dashed border-slate-800 hover:border-violet-500/50 transition-all duration-300 p-8 rounded-2xl text-center relative group">
+      <div className="bg-slate-900/20 border border-dashed border-slate-800 hover:border-cyan-500/50 transition-all duration-300 p-8 rounded-2xl text-center relative group">
         <input type="file" onChange={handleUpload} disabled={uploading} className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" />
         <div className="flex flex-col items-center justify-center space-y-3 pointer-events-none">
-          <div className="p-4 rounded-full bg-slate-900 text-violet-400 group-hover:scale-110 transition-transform duration-300 border border-slate-800">
+          <div className="p-4 rounded-full bg-slate-900 text-cyan-400 group-hover:scale-110 transition-transform duration-300 border border-slate-800">
             <UploadCloud className="h-6 w-6" />
           </div>
           <div>

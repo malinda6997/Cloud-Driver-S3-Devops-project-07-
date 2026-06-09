@@ -1,28 +1,40 @@
 "use client";
-import { useEffect, useState } from "react";
-import { HardDrive, FileText, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { HardDrive, FileText, CheckCircle, Eye } from "lucide-react";
+
+// S3 File එකක් සඳහා නිවැරදි TypeScript Type Interface එක
+interface S3File {
+  key: string;
+  size: number;
+  lastModified: string;
+  url: string;
+}
 
 export default function Dashboard() {
-  const [files, setFiles] = useState<any[]>([]);
+  const [files, setFiles] = useState<S3File[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchFiles();
-  }, []);
-
-  const fetchFiles = async () => {
+  const fetchFiles = useCallback(async () => {
     try {
       const res = await fetch("/api/storage");
       const result = await res.json();
-      if (result.success) setFiles(result.data);
+      if (result.success) {
+        setFiles(result.data);
+      }
     } catch (err) {
       console.error("Failed to fetch data", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // දැන් fetchFiles එක කලින්ම හදලා තියෙන නිසා මෙතන කිසිම අවුලක් වෙන්නේ නැහැ
+  useEffect(() => {
+    fetchFiles();
+  }, [fetchFiles]);
 
   const totalSize = files.reduce((acc, file) => acc + (file.size || 0), 0);
+  
   const formatSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -47,7 +59,7 @@ export default function Dashboard() {
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Space Used</p>
             <h3 className="text-2xl font-bold mt-1 text-slate-100">{formatSize(totalSize)}</h3>
           </div>
-          <div className="p-3 rounded-xl bg-violet-500/10 text-violet-400"><HardDrive className="h-6 w-6" /></div>
+          <div className="p-3 rounded-xl bg-cyan-500/10 text-cyan-400"><HardDrive className="h-6 w-6" /></div>
         </div>
 
         <div className="bg-slate-900/40 border border-slate-800/80 p-6 rounded-2xl flex items-center justify-between shadow-xl backdrop-blur-md">
@@ -84,6 +96,7 @@ export default function Dashboard() {
                 <div key={file.key} className="group relative bg-slate-900/20 border border-slate-800/60 rounded-2xl overflow-hidden hover:border-slate-700/80 transition-all duration-300 shadow-lg">
                   <div className="aspect-video w-full bg-slate-950 flex items-center justify-center border-b border-slate-800/60 overflow-hidden">
                     {isImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img src={file.url} alt={file.key} className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300" />
                     ) : (
                       <FileText className="h-10 w-10 text-slate-600" />
