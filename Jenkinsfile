@@ -59,7 +59,7 @@ pipeline {
                       -e AWS_REGION='us-east-1' \
                       -e AWS_ACCESS_KEY_ID='\${AWS_KEY_ID}' \
                       -e AWS_SECRET_ACCESS_KEY='\${AWS_SECRET_KEY}' \
-                      -e S3_BUCKET_NAME='my-secure-cloud-drive-2026' \
+                      -e AWS_S3_BUCKET_NAME='my-secure-cloud-drive-2026' \
                       ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest
                       
                     sudo docker image prune -a -f || true
