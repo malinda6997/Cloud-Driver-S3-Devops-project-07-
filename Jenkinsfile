@@ -41,9 +41,10 @@ pipeline {
         stage('Deploy to Next.js Server') {
             steps {
                 echo 'Deploying to Next.js Production Server...'
-                sshagent(credentials: ['nextjs-server-ssh']) {
+            
+                withCredentials([sshUserPrivateKey(credentialsId: 'nextjs-server-ssh', keyFileVariable: 'IDENTITY_KEY')]) {
                     sh """
-                    ssh -o StrictHostKeyChecking=no ubuntu@${PROD_SERVER_IP} '
+                    ssh -o StrictHostKeyChecking=no -i \${IDENTITY_KEY} ubuntu@${PROD_SERVER_IP} '
                         sudo docker pull ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest
                         sudo docker stop nextjs-container || true
                         sudo docker rm nextjs-container || true
@@ -60,7 +61,7 @@ pipeline {
             echo 'Deployment Successful! Your Next.js App is LIVE!'
         }
         failure {
-            echo 'Deployment Failed! '
+            echo 'Deployment Failed! Check the logs'
         }
     }
 }
