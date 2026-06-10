@@ -41,15 +41,16 @@ pipeline {
         stage('Deploy to Next.js Server') {
             steps {
                 echo 'Deploying to Next.js Production Server...'
+                
             
                 withCredentials([sshUserPrivateKey(credentialsId: 'nextjs-server-ssh', keyFileVariable: 'IDENTITY_KEY')]) {
                     sh """
-                    ssh -o StrictHostKeyChecking=no -i \${IDENTITY_KEY} ubuntu@${PROD_SERVER_IP} '
-                        sudo docker pull ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest
-                        sudo docker stop nextjs-container || true
-                        sudo docker rm nextjs-container || true
-                        sudo docker run -d --name nextjs-container --restart always -p 3000:3000 ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest
-                    '
+                        ssh -o StrictHostKeyChecking=no -i "\${IDENTITY_KEY}" ubuntu@${PROD_SERVER_IP} "
+                            sudo docker pull ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest
+                            sudo docker stop nextjs-container || true
+                            sudo docker rm nextjs-container || true
+                            sudo docker run -d --name nextjs-container --restart always -p 3000:3000 ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest
+                        "
                     """
                 }
             }
